@@ -6,8 +6,11 @@
 
 #include <iostream>
 #include <string>
+
+#ifndef WIN32
 // #include <format> // no compiler support yet :(
 #include <fmt/format.h> // once support added switch back to std::format
+#endif
 
 #include "bridge.h"
 

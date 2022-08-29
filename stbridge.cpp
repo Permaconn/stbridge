@@ -2,6 +2,10 @@
 
 namespace stbridge {
 
+#ifdef WIN32
+	#define WIN_BUFFERSIZE 256
+#endif
+
 Brg* m_pBrg = NULL;
 STLinkInterface *m_pStlinkIf = NULL;
 
@@ -25,7 +29,13 @@ void open() {
 	}
 	if (brgStat != BRG_NO_ERR || ifStat != STLINKIF_NO_ERR) {
 		close();
+#ifndef WIN32
 		throw fmt::format("BRG_ERR: {} ST_ERR: {}", brgStat, ifStat);
+#else
+		static char buffer[128];
+		snprintf(buffer, sizeof(buffer), "BRG_ERR: %d ST_ERR: %d", brgStat, ifStat);
+		throw buffer; //"BRG_ERR: {} ST_ERR: {}";	
+#endif
 	}
 }
 
@@ -107,7 +117,11 @@ uint32_t initSPI(int kHz, bitorderSPI bitorder, modeSPI mode) {
 
 boost::python::object readSPI(uint16_t len) {
 	checkNull(m_pBrg);
+#ifdef WIN32
+	uint8_t buff[WIN_BUFFERSIZE];
+#else
 	uint8_t buff[len];
+#endif
 	checkError(m_pBrg->ReadSPI(buff, len, NULL));
 
 	return boost::python::object(boost::python::handle<>(PyBytes_FromStringAndSize((const char*) buff, len)));
@@ -154,8 +168,12 @@ boost::python::object readI2C(uint16_t addr, uint16_t len) {
 	if (len == 0) {
 		throw "Must read at least 1 byte! 😠";
 	}
-
+#ifdef WIN32
+	uint8_t buff[WIN_BUFFERSIZE];
+#else
 	uint8_t buff[len];
+#endif
+
 	checkError(m_pBrg->ReadI2C(buff, addr, len, NULL));
 
 	return boost::python::object(boost::python::handle<>(PyBytes_FromStringAndSize((const char*) buff, len)));
@@ -361,7 +379,11 @@ uint16_t readableCAN() {
 
 inline void checkError(Brg_StatusT stat) {
 	if (stat != BRG_NO_ERR) {
+#ifndef WIN32
 		throw fmt::format("BRG_ERR: {} 😭", stat);
+#else
+		throw "BRG_ERR: {} 😭";
+#endif
 	}
 }
 
