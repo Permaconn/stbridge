@@ -1,3 +1,3 @@
 [submodule "libs"]
 	path = libs
-	url = git@github.com:Permaconn/STLINK-V3-BRIDGE_libusb.git
+	url = https://github.com/Permaconn/STLINK-V3-BRIDGE_libusb.git
